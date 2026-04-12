@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <link href="../../css/styles.css" rel="stylesheet"/>
+  <link href="../../favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
+   <link href="../../favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+   <title>
+    Blogs
+   </title>
+  </link>
+ </head>
+ <body>
+  <h1>
+   Thomas Creagh
+  </h1>
+  <p>
+   Student developer,
+   <b>
+    always
+   </b>
+   learning,
+   <b>
+    always
+   </b>
+   making.
+  </p>
+  <hr/>
+  <nav>
+   <a href="../../index.html">
+    Home
+   </a>
+   <a href="../../projects.html">
+    Projects
+   </a>
+   <a href="../../blogs/index.html">
+    Blogs
+   </a>
+   <a href="../../sec-writeups/index.html">
+    SecurityWriteups
+   </a>
+   <a href="../../media/CV.pdf">
+    CV
+   </a>
+   <a href="https://github.com/ThomasCreagh/">
+    Github
+   </a>
+   <a href="https://www.linkedin.com/in/thomas-creagh/">
+    Linkedin
+   </a>
+  </nav>
+  <hr/>
+  <div class="page">
+   <h3>
+    A Key Management System To Wrap Mastadon
+   </h3>
+   <h4>
+    Introduction
+   </h4>
+   <p>
+    This project was created for my Advanced Computer Networks module. I wrote this system in zig that wraps the social media service Mastadon. The purpose of the project is to allow users to communicate securely through Mastadon with features such as private groups and direct messages.
+   </p>
+   <h4>
+    Architecture
+   </h4>
+   <p>
+    The first problem out of the gate was finding an instance of Mastadon that has a larger character limit than 500 chars. I looked for a few hours but couldnt find any public ones so I hosted my own Mastadon instance on my server. This allowed me to changed the character limit to 1,000,000 and create 3 accounts: Alice, Bob and Carol.
+   </p>
+   <p>
+    Now that I had my transport system working I used the Mastadon API to authenticated users, get users, send messages and recieve messages. To use the program the user runs the application, gives the client thier username and authenticates. Then they are brought to a terminal ui were they can type given commands:
+   </p>
+   <pre><code>msgs                           -&gt; updates messages on client
+dm &lt;user&gt; &lt;msg&gt;                -&gt; direct messages another user by their username
+gm &lt;group&gt; &lt;msg&gt;               -&gt; group messages a group they are a member of by the name of the group
+create &lt;group&gt;                 -&gt; creates a group
+inv &lt;user&gt; &lt;group&gt;             -&gt; invite a user to a group they are a member of by their username
+rm &lt;user&gt; &lt;group&gt; &lt;group name&gt; -&gt; removes a user from a group by creating a new group with a new name and inviting all users that new group
+clear                          -&gt; clears the logs
+quit                           -&gt; quits the program and saves
+</code></pre>
+   <p>
+    This allows the use to communicate with users privately directly or in a group they can create.
+   </p>
+   <h4>
+    Communication Overview
+   </h4>
+   <p>
+    As an example of how the user communcicates if Alice wants to direct message Bob:
+   </p>
+   <h5>
+    <strong>
+     Alice
+    </strong>
+    :
+   </h5>
+   <ul>
+    <li>
+     Key Generation: Alice generates a long-term key pair.
+    </li>
+    <li>
+     Public Key Publication: She publishes her long-term public key to her profile.
+    </li>
+    <li>
+     Ephemeral Key Generation: She generates an ephemeral key pair and sends the public ephemeral key in her message.
+    </li>
+    <li>
+     AES Key Generation:
+    </li>
+    <li>
+     She computes the AES key using her ephemeral private key and Bob's long-term public key.
+    </li>
+    <li>
+     She hashes the result and uses the hash as the key for AES encryption.
+    </li>
+    <li>
+     Nonce and Preparation: She performs necessary actions (like generating a nonce) for encryption.
+    </li>
+    <li>
+     Secure Messaging: Alice can now send messages securely to Bob using the AES key, she encodes with base32 to get printable characters that are url safe and mastadon hashtag safe.
+    </li>
+   </ul>
+   <h5>
+    <strong>
+     Bob
+    </strong>
+    :
+   </h5>
+   <ul>
+    <li>
+     Key Generation: Bob generates a long-term key pair.
+    </li>
+    <li>
+     Public Key Publication: He publishes his long-term public key to his profile.
+    </li>
+    <li>
+     Receiving Message: He receives a message from Alice containing her public ephemeral key.
+    </li>
+    <li>
+     AES Key Computation:
+    </li>
+    <li>
+     Using Alice's public ephemeral key and his private long-term key, he computes the AES key.
+    </li>
+    <li>
+     He hashes this result to obtain the true key and can proceed from there.
+    </li>
+   </ul>
+   <p>
+    Now if Alice wants to make a group with Bob:
+   </p>
+   <h5>
+    <strong>
+     Alice
+    </strong>
+    :
+   </h5>
+   <ul>
+    <li>
+     Key Generation:
+    </li>
+    <li>
+     AES Key Generation: Alice generates a random AES key.
+    </li>
+    <li>
+     Nonce and Preparation: She performs necessary actions (like generating a nonce) for encryption.
+    </li>
+    <li>
+     Secure Messaging: Alice can now send messages securely trough their already cryptographiclly secure direct messages to Bob sending him the AES Key for the group. She encodes with base32 to get printable characters that are url safe and mastadon hashtag safe.
+    </li>
+   </ul>
+   <h5>
+    <strong>
+     Bob
+    </strong>
+    :
+   </h5>
+   <ul>
+    <li>
+     Receiving Message: He receives a message from Alice containing the group AES key and stores it for use.
+    </li>
+   </ul>
+   <h4>
+    Data Model
+   </h4>
+   <p>
+    In order make the client convient I had to store information between session. I chose to store this in json as there is a very convinet struct to json methods in the zig standard library.
+   </p>
+   <p>
+    These are the structs used to store the information:
+   </p>
+   <pre><code class="language-zig">pub const Group = struct {
+    name: []const u8,
+    key: crypto.AesKey,
+};
+
+pub const Dm = struct {
+    name: []const u8,
+    key: crypto.AesKey,
+};
+pub const GroupPair = struct {
+    id: crypto.UUID,
+    group: Group,
+};
+
+pub const DmPair = struct {
+    id: crypto.UUID,
+    dm: Dm,
+};
+
+pub const ClientSave = struct {
+    name: []const u8,
+    access_token: []const u8,
+    long_term_keys: crypto.X25519.KeyPair,
+    groups: []const GroupPair = undefined,
+    dms: []const DmPair = undefined,
+};
+</code></pre>
+   <p>
+    It generates json in this sort of format:
+   </p>
+   <pre><code class="language-json">{
+  long-term-keys: {
+    public-key: &lt;key&gt;
+    private-key: &lt;key&gt;
+  },
+  groups: [
+    group-pair: {
+      key: &lt;aes-key&gt;,
+      name: &lt;name&gt;,
+    },
+    ...
+  ],
+  dms: [
+    dm-pair: {
+      key: &lt;aes-key&gt;,
+      name: &lt;name&gt;,
+    },
+    ...
+  ]
+}
+</code></pre>
+   <p>
+    One of the things I could have done after doing this project is to group dms and groups togher into one system because they are basically the same. The only difference is how they generate the keys. This simplicity is due to not having admins. This was because I only have clients and not one cenetral server to moderate things.
+   </p>
+   <h4>
+    Message Protocol Formats
+   </h4>
+   <p>
+    There are 4 different protocol message formats:
+   </p>
+   <pre><code>    dm_message,
+    dm_invite,
+    group_message,
+    group_invite,
+</code></pre>
+   <h5>
+    dm_message:
+   </h5>
+   <pre><code>Encoded in base32: {
+  Nonce: &lt;nonce&gt;,
+  Tag: &lt;tag&gt;,
+  Encrypted (DM Messaging Key): {
+    Label: [DM Message],
+    Message: &lt;msg&gt;
+  }
+}
+#private-zocial-&lt;ID&gt;
+</code></pre>
+   <h5>
+    dm_invite:
+   </h5>
+   <pre><code>Encoded in base32: {
+  Ephemeral Key: &lt;key&gt;,
+  Nonce: &lt;nonce&gt;,
+  Tag: &lt;tag&gt;,
+  Encrypted (Receivers User Long Term Public Key): {
+    Label: [DM Invite]
+    ID: &lt;new ID for communicating&gt;
+  }
+}
+#private-zocial-0
+</code></pre>
+   <h5>
+    group_message:
+   </h5>
+   <pre><code>Encoded in base32: {
+  Label: [Group Message],
+  Encrypted (Group Message Key): {
+    Message: &lt;Text message&gt;
+  }
+}
+#private-zocial-&lt;ID&gt;
+</code></pre>
+   <h5>
+    group_invite:
+   </h5>
+   <pre><code>{
+  Encrypted (DM Messaging Key): {
+    Label: [Group Invite],
+    Group Message Key: &lt;key&gt;
+  }
+}
+#private-zocial-&lt;ID&gt;
+</code></pre>
+   <p>
+    With only these 4 formats we can achieve all the communication we need for this project.
+   </p>
+   <h4>
+    Links
+   </h4>
+   <p>
+    Here is the linke to the code on github:
+    <a href="https://github.com/ThomasCreagh/private-zocial">
+     https://github.com/ThomasCreagh/private-zocial
+    </a>
+   </p>
+  </div>
+ </body>
+</html>
