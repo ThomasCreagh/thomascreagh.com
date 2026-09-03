@@ -1,14 +1,14 @@
-### A Key Management System To Wrap Mastadon
+### A Key Management System To Wrap Mastodon
 
 #### Introduction
 
-This project was created for my Advanced Computer Networks module. I wrote this system in zig that wraps the social media service Mastadon. The purpose of the project is to allow users to communicate securely through Mastadon with features such as private groups and direct messages.
+This project was created for my Advanced Computer Networks module. I wrote this system in zig that wraps the social media service Mastodon. The purpose of the project is to allow users to communicate securely through Mastadon with features such as private groups and direct messages.
 
 #### Architecture
 
-The first problem out of the gate was finding an instance of Mastadon that has a larger character limit than 500 chars. I looked for a few hours but couldnt find any public ones so I hosted my own Mastadon instance on my server. This allowed me to changed the character limit to 1,000,000 and create 3 accounts: Alice, Bob and Carol.
+The first problem out of the gate was finding an instance of Mastodon that has a larger character limit than 500 chars. I looked for a few hours but couldnt find any public ones so I hosted my own Mastadon instance on my server. This allowed me to changed the character limit to 1,000,000 and create 3 accounts: Alice, Bob and Carol.
 
-Now that I had my transport system working I used the Mastadon API to authenticated users, get users, send messages and recieve messages. To use the program the user runs the application, gives the client thier username and authenticates. Then they are brought to a terminal ui were they can type given commands:
+Now that I had my transport system working I used the Mastodon API to authenticate users, get users, send messages and receive messages. To use the program the user runs the application, gives the client thier username and authenticates. Then they are brought to a terminal ui where they can type given commands:
 ```
 msgs                           -> updates messages on client
 dm <user> <msg>                -> direct messages another user by their username
@@ -19,11 +19,11 @@ rm <user> <group> <group name> -> removes a user from a group by creating a new 
 clear                          -> clears the logs
 quit                           -> quits the program and saves
 ```
-This allows the use to communicate with users privately directly or in a group they can create.
+This allows the user to communicate with users privately directly or in a group they can create.
 
 #### Communication Overview
 
-As an example of how the user communcicates if Alice wants to direct message Bob:
+As an example of how the user communicates if Alice wants to direct message Bob:
 
 ##### **Alice**:
 - Key Generation: Alice generates a long-term key pair.
@@ -50,7 +50,7 @@ Now if Alice wants to make a group with Bob:
 - Key Generation:
 - AES Key Generation: Alice generates a random AES key.
 - Nonce and Preparation: She performs necessary actions (like generating a nonce) for encryption.
-- Secure Messaging: Alice can now send messages securely trough their already cryptographiclly secure direct messages to Bob sending him the AES Key for the group. She encodes with base32 to get printable characters that are url safe and mastadon hashtag safe.
+- Secure Messaging: Alice can now send messages securely through their already cryptographically secure direct messages to Bob sending him the AES Key for the group. She encodes with base32 to get printable characters that are url safe and mastadon hashtag safe.
 
 ##### **Bob**:
 
@@ -58,7 +58,7 @@ Now if Alice wants to make a group with Bob:
 
 #### Data Model
 
-In order make the client convient I had to store information between session. I chose to store this in json as there is a very convinet struct to json methods in the zig standard library.
+In order to make the client convenient I had to store information between sessions. I chose to store this in json as there is a very convinet struct to json methods in the zig standard library.
 
 These are the structs used to store the information:
 
@@ -116,7 +116,7 @@ It generates json in this sort of format:
 }
 ```
 
-One of the things I could have done after doing this project is to group dms and groups togher into one system because they are basically the same. The only difference is how they generate the keys. This simplicity is due to not having admins. This was because I only have clients and not one cenetral server to moderate things.
+One of the things I could have done after doing this project is to group dms and groups together into one system because they are basically the same. The only difference is how they generate the keys. This simplicity is due to not having admins. This was because I only have clients and not one central server to moderate things.
 
 #### Message Protocol Formats
 
@@ -184,4 +184,4 @@ With only these 4 formats we can achieve all the communication we need for this 
 
 #### Links
 
-Here is the linke to the code on github: [https://github.com/ThomasCreagh/private-zocial](https://github.com/ThomasCreagh/private-zocial)
+Here is the link to the code on github: [https://github.com/ThomasCreagh/private-zocial](https://github.com/ThomasCreagh/private-zocial)
